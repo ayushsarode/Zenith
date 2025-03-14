@@ -1,105 +1,49 @@
 syntax = "proto3";
 
 package chat;
-option go_package = "github.com/ayushsarode/termiXchat/proto";
+option go_package = "./proto";
 
 service ChatService {
-
-  // user management 
-  rpc Register(RegisterRequest) returns (RegisterResponse) {}
-  rpc Login(LoginRequest) returns (LoginResponse) {}
-
-  // room management
-  rpc CreateRoom(CreateRoomRequest) returns (CreateRoomResponse) {}
-  rpc JoinRoom(JoinRoomRequest) returns (JoinRoomResponse) {}
-  rpc ListRooms(ListRoomsRequest) returns (ListRoomsResponse) {}
-
-  // messaging
-  rpc StreamMessages(StreamMessagesRequest) returns (stream Message) {}
-  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc CreateRoom(CreateRoomRequest) returns (CreateRoomResponse);
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+  rpc JoinRoom(JoinRoomRequest) returns (stream ReceiveMessageResponse);
 }
 
-// User management messages
-message RegisterRequest {
+message CreateUserRequest {
   string username = 1;
-  string password = 2;
 }
 
-message RegisterResponse {
-  bool success = 1;
-  string error = 2;
-  int64 user_id = 3;
+message CreateUserResponse {
+  int32 user_id = 1;
+  string username = 2;
 }
 
-message LoginRequest {
-  string username = 1;
-  string password = 2;
-}
-
-message LoginResponse {
-  bool success = 1;
-  string error = 2;
-  string token = 3;
-}
-
-// room management messages
 message CreateRoomRequest {
-  string room_name = 1;
-  string token = 2;
+  string name = 1;
 }
 
 message CreateRoomResponse {
-  bool success = 1;
-  string error = 2;
-  int64 room_id = 3;
-}
-
-message JoinRoomRequest {
-  int64 room_id = 1;
-  string token = 2;
-}
-
-message JoinRoomResponse {
-  bool success = 1;
-  string error = 2;
-}
-
-message ListRoomsRequest {
-  string token = 1;
-}
-
-message Room {
-  int64 id = 1;
+  int32 room_id = 1;
   string name = 2;
-  int64 member_count = 3;
-}
-
-message ListRoomsResponse {
-  repeated Room rooms = 1;
-}
-
-// Messaging
-message StreamMessagesRequest {
-  int64 room_id = 1;
-  string token = 2;
-}
-
-message Message {
-  int64 id = 1;
-  int64 room_id = 2;
-  int64 user_id = 3;
-  string username = 4;
-  string content = 5;
-  string sent_at = 6;
 }
 
 message SendMessageRequest {
-  int64 room_id = 1;
-  string content = 2;
-  string token = 3;
+  int32 user_id = 1;
+  int32 room_id = 2;
+  string message = 3;
 }
 
 message SendMessageResponse {
-  bool success = 1;
-  string error = 2;
+  string status = 1;
+}
+
+message JoinRoomRequest {
+  int32 room_id = 1;
+  int32 user_id = 2;
+}
+
+message ReceiveMessageResponse {
+  string username = 1;
+  string message = 2;
 }
