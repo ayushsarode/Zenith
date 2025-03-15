@@ -4,14 +4,30 @@ package chat;
 option go_package = "./proto";
 
 service ChatService {
-  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
-  rpc CreateRoom(CreateRoomRequest) returns (CreateRoomResponse);
-  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
-  rpc JoinRoom(JoinRoomRequest) returns (stream ReceiveMessageResponse);
+// User management
+rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+rpc LoginUser(LoginUserRequest) returns (CreateUserResponse);
+rpc ChangeUsername(ChangeUsernameRequest) returns (ChangeUsernameResponse);
+
+// Room management
+rpc CreateRoom(CreateRoomRequest) returns (CreateRoomResponse);
+rpc GetRoomInfo(GetRoomInfoRequest) returns (GetRoomInfoResponse);
+rpc ListRooms(ListRoomsRequest) returns (ListRoomsResponse);
+
+// Messaging
+rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+rpc SendDirectMessage(SendDirectMessageRequest) returns (SendDirectMessageResponse);
+rpc JoinRoom(JoinRoomRequest) returns (stream ReceiveMessageResponse);
+rpc LeaveRoom(LeaveRoomRequest) returns (LeaveRoomResponse);
+rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+
 }
 
+
+// User management messages
 message CreateUserRequest {
   string username = 1;
+  string password = 2;
 }
 
 message CreateUserResponse {
@@ -19,6 +35,22 @@ message CreateUserResponse {
   string username = 2;
 }
 
+message LoginUserRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message ChangeUsernameRequest {
+  int32 user_id = 1;
+  string new_username = 2;
+}
+
+message ChangeUsernameResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Room management messages
 message CreateRoomRequest {
   string name = 1;
 }
@@ -28,6 +60,32 @@ message CreateRoomResponse {
   string name = 2;
 }
 
+message GetRoomInfoRequest {
+  int32 room_id = 1;
+}
+
+message GetRoomInfoResponse {
+  int32 room_id = 1;
+  string name = 2;
+  int32 user_count = 3;
+  int64 created_at = 4;
+}
+
+message ListRoomsRequest {
+  // Optional filters can be added here
+}
+
+message RoomInfo {
+  int32 room_id = 1;
+  string name = 2;
+  int32 user_count = 3;
+}
+
+message ListRoomsResponse {
+  repeated RoomInfo rooms = 1;
+}
+
+// Messaging messages
 message SendMessageRequest {
   int32 user_id = 1;
   int32 room_id = 2;
@@ -36,6 +94,18 @@ message SendMessageRequest {
 
 message SendMessageResponse {
   string status = 1;
+  int64 timestamp = 2;
+}
+
+message SendDirectMessageRequest {
+  int32 sender_id = 1;
+  string recipient_username = 2;
+  string message = 3;
+}
+
+message SendDirectMessageResponse {
+  string status = 1;
+  int64 timestamp = 2;
 }
 
 message JoinRoomRequest {
@@ -43,7 +113,35 @@ message JoinRoomRequest {
   int32 user_id = 2;
 }
 
-message ReceiveMessageResponse {
-  string username = 1;
+message LeaveRoomRequest {
+  int32 user_id = 1;
+  int32 room_id = 2;
+}
+
+message LeaveRoomResponse {
+  bool success = 1;
   string message = 2;
+}
+
+message ListUsersRequest {
+  int32 room_id = 1;
+}
+
+message UserInfo {
+  int32 user_id = 1;
+  string username = 2;
+  int64 last_active = 3;
+}
+
+message ListUsersResponse {
+  repeated UserInfo users = 1;
+}
+
+message ReceiveMessageResponse {
+  int32 message_id = 1;
+  string username = 2;
+  string message = 3;
+  int64 timestamp = 4;
+  bool is_system = 5;
+  bool is_direct = 6;
 }
