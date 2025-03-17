@@ -1,3 +1,10 @@
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/439428cf-c7cf-41f6-9fdb-cd97492ab95b" width="200px">
+</p>
+
+
+
+
 # termiXchat
 A terminal based chat application built in go with gRPC
 
