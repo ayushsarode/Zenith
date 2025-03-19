@@ -1,0 +1,47 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    ports:
+      - "50051:50051"
+    networks:
+      - zenith-network
+    depends_on:
+      - db
+    env_file:
+      - .env
+
+  client:
+    build: 
+      context: .
+      dockerfile: Dockerfile.client
+    depends_on:
+      - server
+    networks:
+      - zenith-network
+    environment:
+      - SERVER_HOST=server
+      - SERVER_PORT=50051
+  
+    stdin_open: true
+    tty: true
+
+  db:
+    image: postgres:latest
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5433:5433"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - zenith-network
+
+volumes:
+  pgdata:
+
+networks:
+  zenith-network:
+    driver: bridge

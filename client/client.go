@@ -4,17 +4,18 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	
+
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 	"time"
+
 	"golang.org/x/term"
 
+	pb "github.com/ayushsarode/termiXchat/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "github.com/ayushsarode/termiXchat/proto"
 )
 
 const (
@@ -127,14 +128,14 @@ func (c *chatClient) authenticate() bool {
 	}
 	
 	fmt.Print("Enter your password: ")
-	// Use term package to hide password input
+	// term package to hide password input
 	passwordBytes, err := term.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		fmt.Printf("%s❌ Error reading password: %v%s\n", colorRed, err, colorReset)
 		return false
 	}
 	password = string(passwordBytes)
-	fmt.Println() // Add newline after password input
+	fmt.Println() 
 	
 	if password == "" {
 		fmt.Printf("%s❌ Password cannot be empty. Please try again.%s\n", colorRed, colorReset)
@@ -154,7 +155,7 @@ func (c *chatClient) authenticate() bool {
 		}
 		fmt.Printf("%s✅ User created successfully!%s\n", colorGreen, colorReset)
 	} else {
-		// Login existing user (you would need to add a Login method to your service)
+		
 		userResp, err = c.client.LoginUser(ctx, &pb.LoginUserRequest{Username: username, Password: password})
 		if err != nil {
 			fmt.Printf("%s❌ Login failed: %v%s\n", colorRed, err, colorReset)
@@ -182,7 +183,7 @@ func (c *chatClient) setupRoom() bool {
 	
 	switch option {
 	case "1":
-		// Create a new room
+		
 		fmt.Print("Enter new room name: ")
 		roomName, _ := reader.ReadString('\n')
 		roomName = strings.TrimSpace(roomName)
@@ -203,7 +204,7 @@ func (c *chatClient) setupRoom() bool {
 		fmt.Printf("%s✅ Created and joined room '%s' with ID: %d%s\n", colorGreen, roomName, c.roomID, colorReset)
 		
 	case "2":
-		// Join existing room
+		// join existing room
 		fmt.Print("Enter room ID: ")
 		var roomID int32
 		_, err := fmt.Scanf("%d", &roomID)
@@ -211,7 +212,7 @@ func (c *chatClient) setupRoom() bool {
 			fmt.Printf("%s❌ Invalid room ID: %v%s\n", colorRed, err, colorReset)
 			return false
 		}
-		// Clean up input buffer
+		// clean up input buffer
 		reader.ReadString('\n')
 		
 		// Get room info
@@ -226,7 +227,7 @@ func (c *chatClient) setupRoom() bool {
 		fmt.Printf("%s✅ Joined room '%s' with ID: %d%s\n", colorGreen, c.roomName, c.roomID, colorReset)
 		
 	case "3":
-		// List available rooms
+		
 		rooms, err := c.client.ListRooms(ctx, &pb.ListRoomsRequest{})
 		if err != nil {
 			fmt.Printf("%s❌ Failed to list rooms: %v%s\n", colorRed, err, colorReset)
@@ -240,7 +241,7 @@ func (c *chatClient) setupRoom() bool {
 		}
 		fmt.Println("----------------------------------")
 		
-		// After showing the list, prompt to join a room
+		// prompt to join a room
 		fmt.Print("Enter room ID to join: ")
 		var roomID int32
 		_, err = fmt.Scanf("%d", &roomID)
@@ -372,7 +373,7 @@ func (c *chatClient) handleUserInput() {
 }
 
 func (c *chatClient) messageLoop() {
-	// Display input prompt
+	
 	fmt.Print("> ")
 	
 	for {
@@ -389,7 +390,7 @@ func (c *chatClient) messageLoop() {
 				continue
 			}
 			
-			// Send normal message
+			// normal message
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			_, err := c.client.SendMessage(ctx, &pb.SendMessageRequest{
 				UserId:  c.userID,
@@ -401,26 +402,26 @@ func (c *chatClient) messageLoop() {
 			if err != nil {
 				fmt.Printf("\r\033[K%s❌ Error sending message: %v%s\n> ", colorRed, err, colorReset)
 			} else {
-				// Clear the input line for a cleaner look
+				
 				fmt.Print("\r\033[K> ")
 			}
 			
 		case msg := <-c.msgChan:
-			// Format and display the message
+			
 			timestamp := time.Unix(msg.Timestamp, 0).Format(timeFormat)
 			
-			// Clear the current input line
+			// clear current input line
 			fmt.Print("\r\033[K")
 			
 			// Format based on message type
 			if msg.IsSystem {
 				fmt.Printf("%s[%s] %s%s\n> ", colorGray, timestamp, msg.Message, colorReset)
 			} else if msg.Username == c.username {
-				// Own messages
-				fmt.Printf("%s[%s] %s%s: %s\n> ", colorGray, timestamp, colorGreen, msg.Username, colorReset+msg.Message)
+				// Own messages (Green username, white message)
+				fmt.Printf("%s[%s] %s%s[You]:%s %s\n> ", colorGray, timestamp, colorBlue, msg.Username, colorReset, msg.Message)
 			} else {
-				// Others' messages
-				fmt.Printf("%s[%s] %s%s: %s\n> ", colorGray, timestamp, colorBlue, msg.Username, colorReset+msg.Message)
+				// Others' messages (Blue username, white message)
+				fmt.Printf("%s[%s] %s%s:%s %s\n> ", colorGray, timestamp, colorPurple, msg.Username, colorReset, msg.Message)
 			}
 			
 		case err := <-c.errChan:
@@ -603,7 +604,7 @@ func (c *chatClient) changeRoom(roomID int32) {
 		return
 	}
 	
-	// Leave current room
+	// leave current room
 	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	_, err = c.client.LeaveRoom(ctx, &pb.LeaveRoomRequest{
 		UserId: c.userID,
