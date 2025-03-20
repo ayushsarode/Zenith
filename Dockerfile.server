@@ -1,5 +1,7 @@
 FROM golang:1.24-alpine AS builder
 
+
+
 WORKDIR /app
 
 COPY go.mod go.sum ./
@@ -12,7 +14,7 @@ RUN go build -o zenith-server ./main.go
 
 FROM alpine:latest
 
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates netcat-openbsd
 
 WORKDIR /root/
 

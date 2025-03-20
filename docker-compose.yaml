@@ -9,11 +9,27 @@ services:
       - zenith-network
     depends_on:
       - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
+    restart: on-failure
     env_file:
       - .env
+    command: >
+      sh -c "
+        until nc -z db 5432;
+        do
+          echo 'Waiting for database to be ready...';
+          sleep 2;
+        done;
+        echo 'Database is ready!';
+        ./zenith-server"
 
   client:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile.client
     depends_on:
@@ -23,17 +39,18 @@ services:
     environment:
       - SERVER_HOST=server
       - SERVER_PORT=50051
-  
     stdin_open: true
     tty: true
 
   db:
     image: postgres:latest
     restart: always
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
-      - "5433:5433"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:

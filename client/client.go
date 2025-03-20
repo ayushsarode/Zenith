@@ -62,7 +62,17 @@ func main() {
 	
 	// connecting to server
 	fmt.Printf("%s🔌 Connecting to chat server...%s\n", colorYellow, colorReset)
-	conn, err := grpc.NewClient(serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	serverHost := os.Getenv("SERVER_HOST")
+if serverHost == "" {
+    serverHost = "localhost"
+}
+
+
+serverPort := os.Getenv("SERVER_PORT")
+if serverPort == "" {
+	serverPort = "50051"
+}
+	conn, err := grpc.NewClient(serverHost + ":" + serverPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		fmt.Printf("%s❌ Failed to connect to server: %v%s\n", colorRed, err, colorReset)
 		return
@@ -656,7 +666,7 @@ func displayColorZenithLogo() {
     ╚══════╝╚══════╝╚═╝  ╚═══╝╚═╝   ╚═╝   ╚═╝  ╚═╝` + reset + `
                                            
     ` + gold + `------------------------------------------------` + reset + `
-    ` + cyan + bold + `      Terminal Chat at the Peak of Excellence` + reset + `
+    ` + cyan + bold + `      Hop in, your friends are waiting!` + reset + `
     ` + gold + `------------------------------------------------` + reset + `
 	`
 	fmt.Println(logo)
